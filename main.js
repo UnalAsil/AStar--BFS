@@ -1,6 +1,4 @@
 "use strict";
-
-// importScripts('A*withQueue.js');
 var canvas = document.createElement('canvas');
 var ctx = canvas.getContext("2d");
 canvas.id = "CursorLayer";
@@ -21,7 +19,6 @@ newImg.onload = function () {
     canvas.width = this.width;
     canvas.height = this.height;
     ctx.drawImage(this, 0, 0, this.width, this.height);
-    // Guncelle global degeleri ve red channel; -> 44
     startCalc();
     reduceAlpha(125)
 }
@@ -44,45 +41,21 @@ document.getElementById('img').onchange = function () {
     }
 };
 
-function startCalc() {
-    var img_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let index = getIndex(50, 50, img_data.width, img_data.height) // globalleri kullan
-
-    if (index) {
-        console.log("Index : " + index);
-        console.log("R: " + img_data.data[index]); //Red chanell
-        console.log("G: " + img_data.data[index + 1]); // gree
-        console.log("B: " + img_data.data[index + 2]); //blu
-        console.log("A: " + img_data.data[index + 3]); // alp
-    }
-}
-
-function getIndex(i, j, width, height) {
+function getIndex(i, j, width, height) { // Map in indexini bulmak icin kullanildi
     if (i < height && j < width)
         return (i * width + j) * 4;
     return null;
 }
 
-function reduceAlpha(trash_hold) {
-    var img_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    for (let i = Math.round(img_data.height / 2); i < img_data.height; i++) {
-        for (let j = Math.round(img_data.width / 2); j < img_data.width; j++) {
-            img_data.data[getIndex(i, j, img_data.width, img_data.height) + 3] -= trash_hold;
-        }
-    }
-    ctx.putImageData(img_data, 0, 0);
-}
-
-let coordStart = null;
-let coordEnd = null;
+let coordStart = null; // Baslangic noktasi
+let coordEnd = null; // Bitis noktasi
 let control = false;
 
-function canvasOnMouseDown(e) {
+function canvasOnMouseDown(e) { //Mousela baslangic ve bitis noktasi aliyor. Bitis noktasini aldiktan sonra algoritmalari calistiriyor
     e.preventDefault();
     console.log(e);
     let coeff = (canvas.width / canvas.offsetWidth);
-    let x = Math.floor(coeff*e.pageX);
+    let x = Math.floor(coeff*e.pageX); 
     let y = Math.floor(coeff*e.pageY)
     
     if (!control) {
@@ -92,11 +65,9 @@ function canvasOnMouseDown(e) {
         coordEnd = { x: x, y: y };
         console.log(coordStart, coordEnd);
         console.log("console log trgle cagirdim");
-        // trigger_worker();
         let type = "1"
         let type1 = ("1")
         let path0, time0, count0, maks0
-        // ({path0,time0,count0,maks0})
         var element = document.getElementsByTagName("table"), index1;
 
         for (index1 = element.length - 1; index1 >= 0; index1--) {
@@ -104,7 +75,7 @@ function canvasOnMouseDown(e) {
         }
     
         let a = Astar("queue");
-        tableCreate(a,"A* with Queue");
+        tableCreate(a,"A* with Queue"); // Istenen algoritmalar calistiriliyor
         trigle(a[0],"red")
         let b = Astar("heap");
         tableCreate(b, "A* with Heap");
@@ -119,16 +90,6 @@ function canvasOnMouseDown(e) {
     control = !control;
 
     var img_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let index = getIndex(y, x, img_data.width, img_data.height)
-
-    if (index) {
-        // console.log("Index : " + index);
-        // console.log("R: " + img_data.data[index]); //Red chanell
-        // console.log("G: " + img_data.data[index+1]); // gree
-        // console.log("B: " + img_data.data[index+2]); //blu
-        // console.log("A: " + img_data.data[index+3]); // alp
-    }
-
 }
 
 function controller(val1, val2, inc) {
@@ -137,7 +98,7 @@ function controller(val1, val2, inc) {
     return val2 < val1;
 }
 
-function trigle(path,color) {
+function trigle(path,color) { // Hesaplanan yollari resim uzerinde cizmek icin kullanildi
     ctx = canvas.getContext("2d");
     console.log("Giris yapiyorum");
     var img_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -147,98 +108,76 @@ function trigle(path,color) {
         // console.log(" Yol cizdirmede  x,y", path[item].x, path[item].y)
         ctx.fillRect(path[item].position.x, path[item].position.y, 5, 5);
     }
-
-    // ctx.putImageData(img_data, 0, 0);
-
-    // let xInc = (coordEnd.x - coordStart.x  ) / Math.abs(coordEnd.x - coordStart.x   )
-    // let yInc = (coordEnd.y - coordStart.y ) / Math.abs(coordStart.y-coordEnd.y  )
-
-    // ctx.fillStyle = "red";
-
-    // for (let i = coordStart.x; controller(i,coordEnd.x,xInc); i+=xInc*5)
-    // {
-    //     ctx.fillRect(i,coordStart.y,4,4);
-    // }
-
-    // for (let j = coordStart.y; controller(j,coordEnd.y,yInc) ; j+=yInc*5)
-    // {
-    //     ctx.fillRect(coordEnd.x,j,4,4);
-    // }
 }
 
-function Astar(type) {
+function Astar(type) { // A star fonksiyonu
     var img_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let start_time = performance.now()
     ctx.fillStyle = "blue";
 
     let queue = null
-    if (type == "queue") {
+    if (type == "queue") { // Gelen parametreye gore heap yada kuyruk kullanacagina karar veriyor.
         queue = new Ownqueue()
     }
     else {
         queue = new MinHeap()
     }
-    // let queue = new MinHeap()
-    // let queue = new Ownqueue()
-    let visited = {}
+
+    let visited = {} // Ziyaret edilen nodeleri saklamak amaciyla kullanildi
     let start_point = new Cell()
     start_point.setPosition(coordStart)
-    // console.log("Position Start", start_point.position)
     let end_point = new Cell()
     end_point.setPosition(coordEnd)
-    // console.log("Position end", end_point.position)
     console.log("StartPoint", start_point)
 
-    queue.insert(start_point)
-    visited[start_point.position.x + "_" + start_point.position.y] = start_point
+    queue.insert(start_point) // Baslangic noktasi kuyruga basiliyor
+    visited[start_point.position.x + "_" + start_point.position.y] = start_point // Visitedde isaretleniyor. Islem maliyetini kismak amaciyla burda hashlemeye benzer bir mantik kullanildi.
 
     let new_pointX
     let new_pointY
     let temp
     let count = 0
     let maks = 0
-    while (!queue.empty()) {
+    while (!queue.empty()) { // kuyruk bos olana kadar devam ediyor.
         let current_point = new Cell()
-        Object.assign(current_point, queue.pop_min())
+        Object.assign(current_point, queue.pop_min()) // kuyruktan siradaki node cekildi
         count++
         // console.log("Guncel obje",current_point)
         if (current_point.position.x == end_point.position.x && current_point.position.y == end_point.position.y) {
-            let path = []
+            let path = []                           // Eger bitis noktasina ulasilmissa gerekli hesaplamalar yapilip, geri donduruluyor
             let current = current_point
-            while (current.parent != null) {
+            while (current.parent != null) {    // Bitis noktasina ulastiginda parentlerine giderek, pathi cikariyor.
                 path.push({ position: current.position, cost: current.f })
                 current = current.parent
             }
             let end_time = performance.now();
             console.log("Path olusturuldu", path)
-            return [path, end_time - start_time, count, maks];
+            return [path, end_time - start_time, count, maks]; // Istenen degerler geri donduruluyor
             // return path
         }
-        let x_ = [1, -1, 0, 0, 1, -1];
+        let x_ = [1, -1, 0, 0, 1, -1]; // let x_ ve let_y komsuluklarini hesaplamak amaciyla kullanildi, 8 komsuyada bakilmaktadir.
         let y_ = [0, 0, 1, -1, 1, -1];
-        // console.log("Alandayim",current_point)
         for (let item = 0; item < 4; item++) {
-            new_pointX = current_point.position.x + x_[item]
+            new_pointX = current_point.position.x + x_[item] //childler olusturuluyor.
             new_pointY = current_point.position.y + y_[item]
-            // console.log("new pointx, new_point y ",  new_pointX, new_pointY)
+                //Eger olusturulan chidler, sinirlarin icerisindeyse ve daha once ziyaret edilmemisse hesaplamalar yapilip kuyruga basiliyor
             if (!(new_pointX < 0 || new_pointX >= canvas.width || new_pointY < 0 || new_pointY >= canvas.height) && !visited[new_pointX + "_" + new_pointY]) {
                 temp = new Cell()
                 temp.setParent(current_point)
                 temp.setPosition({ x: new_pointX, y: new_pointY })
                 let reelcost = img_data.data[getIndex(temp.position.y, temp.position.x, img_data.width, img_data.height)]
-                reelcost = 255 - reelcost
+                reelcost = 255 - reelcost //GercekCost hesaplandi
                 if (reelcost == 0) {
                     reelcost = 1
                 }
-                temp.g = current_point.g + reelcost
+                temp.g = current_point.g + reelcost // mevcut cost ile gercek cost degeri toplaniyor
                 // temp.g = current_point.g
-                temp.h = Math.sqrt(((temp.position.x - end_point.position.x) ** 2) + ((temp.position.y - end_point.position.y) ** 2))
-                temp.f = temp.g + temp.h
-                // console.log("Basiyorum su anda", temp)
+                temp.h = Math.sqrt(((temp.position.x - end_point.position.x) ** 2) + ((temp.position.y - end_point.position.y) ** 2)) // heuristic cost hesaplaniyor
+                temp.f = temp.g + temp.h // toplam cost
                 visited[new_pointX + "_" + new_pointY] = temp
-                queue.insert(temp)
-                // ctx.fillRect(new_pointX,new_pointY, 1, 1)
-                if (queue.size() > maks) {
+                queue.insert(temp) // kuyruga basiliyor
+
+                if (queue.size() > maks) { // eger mevcut kuyruk uzunlugu, maksimumdan buyukse yeni maksimum degeri ataniyor.
                     maks = queue.size();
                 }
             }
@@ -247,80 +186,73 @@ function Astar(type) {
     // console.log("Path olusmadi");
 }
 
-
-function BFS(type) {
+function Astar(type) { // A star fonksiyonu
     var img_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let start_time = performance.now()
     ctx.fillStyle = "blue";
 
     let queue = null
-    if (type == "queue") {
+    if (type == "queue") { // Gelen parametreye gore heap yada kuyruk kullanacagina karar veriyor.
         queue = new Ownqueue()
     }
     else {
         queue = new MinHeap()
     }
-    // let queue = new MinHeap()
-    // let queue = new Ownqueue()
-    let visited = {}
+
+    let visited = {} // Ziyaret edilen nodeleri saklamak amaciyla kullanildi
     let start_point = new Cell()
     start_point.setPosition(coordStart)
-    // console.log("Position Start", start_point.position)
     let end_point = new Cell()
     end_point.setPosition(coordEnd)
-    // console.log("Position end", end_point.position)
     console.log("StartPoint", start_point)
 
-    queue.insert(start_point)
-    visited[start_point.position.x + "_" + start_point.position.y] = start_point
+    queue.insert(start_point) // Baslangic noktasi kuyruga basiliyor
+    visited[start_point.position.x + "_" + start_point.position.y] = start_point // Visitedde isaretleniyor. Islem maliyetini kismak amaciyla burda hashlemeye benzer bir mantik kullanildi.
 
     let new_pointX
     let new_pointY
     let temp
     let count = 0
     let maks = 0
-    while (!queue.empty()) {
+    while (!queue.empty()) { // kuyruk bos olana kadar devam ediyor.
         let current_point = new Cell()
-        Object.assign(current_point, queue.pop_min())
+        Object.assign(current_point, queue.pop_min()) // kuyruktan siradaki node cekildi
         count++
         // console.log("Guncel obje",current_point)
         if (current_point.position.x == end_point.position.x && current_point.position.y == end_point.position.y) {
-            let path = []
+            let path = []                           // Eger bitis noktasina ulasilmissa gerekli hesaplamalar yapilip, geri donduruluyor
             let current = current_point
-            while (current.parent != null) {
+            while (current.parent != null) {    // Bitis noktasina ulastiginda parentlerine giderek, pathi cikariyor.
                 path.push({ position: current.position, cost: current.f })
                 current = current.parent
             }
             let end_time = performance.now();
             console.log("Path olusturuldu", path)
-            return [path, end_time - start_time, count, maks];
+            return [path, end_time - start_time, count, maks]; // Istenen degerler geri donduruluyor
             // return path
         }
-        let x_ = [1, -1, 0, 0, 1, -1];
+        let x_ = [1, -1, 0, 0, 1, -1]; // let x_ ve let_y komsuluklarini hesaplamak amaciyla kullanildi, 8 komsuyada bakilmaktadir.
         let y_ = [0, 0, 1, -1, 1, -1];
-        // console.log("Alandayim",current_point)
         for (let item = 0; item < 4; item++) {
-            new_pointX = current_point.position.x + x_[item]
+            new_pointX = current_point.position.x + x_[item] //childler olusturuluyor.
             new_pointY = current_point.position.y + y_[item]
-            // console.log("new pointx, new_point y ",  new_pointX, new_pointY)
+                //Eger olusturulan chidler, sinirlarin icerisindeyse ve daha once ziyaret edilmemisse hesaplamalar yapilip kuyruga basiliyor
             if (!(new_pointX < 0 || new_pointX >= canvas.width || new_pointY < 0 || new_pointY >= canvas.height) && !visited[new_pointX + "_" + new_pointY]) {
                 temp = new Cell()
                 temp.setParent(current_point)
                 temp.setPosition({ x: new_pointX, y: new_pointY })
                 let reelcost = img_data.data[getIndex(temp.position.y, temp.position.x, img_data.width, img_data.height)]
-                reelcost = 255 - reelcost
+                reelcost = 255 - reelcost //GercekCost hesaplandi
                 if (reelcost == 0) {
                     reelcost = 1
                 }
-                // temp.g = current_point.g + reelcost
-                temp.g = current_point.g
-                temp.h = Math.sqrt(((temp.position.x - end_point.position.x) ** 2) + ((temp.position.y - end_point.position.y) ** 2))
-                temp.f = temp.g + temp.h
-                // console.log("Basiyorum su anda", temp)
+                temp.g = current_point.g 
+                temp.h = Math.sqrt(((temp.position.x - end_point.position.x) ** 2) + ((temp.position.y - end_point.position.y) ** 2)) // heuristic cost hesaplaniyor
+                temp.f = temp.g + temp.h // toplam cost
                 visited[new_pointX + "_" + new_pointY] = temp
-                queue.insert(temp)
-                // ctx.fillRect(new_pointX,new_pointY, 1, 1)
-                if (queue.size() > maks) {
+                queue.insert(temp) // kuyruga basiliyor
+
+                if (queue.size() > maks) { // eger mevcut kuyruk uzunlugu, maksimumdan buyukse yeni maksimum degeri ataniyor.
                     maks = queue.size();
                 }
             }
@@ -329,17 +261,8 @@ function BFS(type) {
     // console.log("Path olusmadi");
 }
 
-
-function is_visited(new_point, visited) {
-
-    return visited[new_point.position.x + "_" + new_point.position.y]
-}
-
-
-class Cell {
+class Cell { //Hucreleri tutmak icin kullanildi, parentini pozisyonunu ve maliyetlerini tutuyor.
     constructor(parent = null, position = null) {
-        // self.parent = parent
-        // self.position = position
         this.g = 0
         this.h = 0
         this.f = 0
@@ -354,14 +277,13 @@ class Cell {
     }
 }
 
-class Ownqueue {
+class Ownqueue { //Kuyruk implemantasyonu
     constructor() {
         this.queue = [];
     }
     pop_min() {
         let current_point = this.queue[0]
         let curent_index = 0
-        // console.log("Queue size", this.queue.length)
         for (let item = 0; item < this.queue.length; item++) {
             if (this.queue[item].f < current_point.f) {
                 current_point = this.queue[item]
@@ -387,7 +309,7 @@ class Ownqueue {
     }
 }
 
-class MinHeap {
+class MinHeap { //Heap implemantasyonu
     constructor() {
         this.heapList = [0]
         this.currentSize = 0
@@ -455,7 +377,7 @@ function tableCreate(results,name) {
     tbl.style.marginLeft = 'auto';
     tbl.style.marginTop = '10px';
     tbl.setAttribute('border', '1');
-    var temp = ["Zaman: ", "Stack cekilen eleman: ", " maksimum eleman sayisi: "]
+    var temp = ["Zaman(ms): ", "Stack cekilen eleman: ", " maksimum eleman sayisi: "]
     var tbdy = document.createElement('tbody');
     var tr2 = document.createElement('tr');
     
