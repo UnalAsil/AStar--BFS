@@ -123,12 +123,12 @@ function trigle(path){
     var img_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "red";
 
-    for(let item = 0;item < path.length; item++){
-        console.log(" Yol cizdirmede  x,y", path[item].x, path[item].y)
-        ctx.fillRect(path[item].x, path[item].y, 3, 3);
+    for(let item = 0;item < path.length; item=item+1){
+        // console.log(" Yol cizdirmede  x,y", path[item].x, path[item].y)
+        ctx.fillRect(path[item].position.x, path[item].position.y, 1, 1);
     }
 
-    ctx.putImageData(img_data, 0, 0);
+    // ctx.putImageData(img_data, 0, 0);
     
     // let xInc = (coordEnd.x - coordStart.x  ) / Math.abs(coordEnd.x - coordStart.x   )
     // let yInc = (coordEnd.y - coordStart.y ) / Math.abs(coordStart.y-coordEnd.y  )
@@ -147,6 +147,7 @@ function trigle(path){
 }
 
 function Astar() {
+    var img_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let start_time = performance.now()
     // console.log("Zaman", start_time)
     // let current_point= new Cell()
@@ -158,78 +159,54 @@ function Astar() {
     let end_point = new Cell()
     end_point.setPosition(coordEnd)
     // console.log("Position end", end_point.position)
+    console.log("StartPoint", start_point)
 
     queue.insert(start_point)
     visited[start_point.position.x+"_"+start_point.position.y] = start_point
 
-    //     queue.append(item)
-    //     visited.append(item)
-    //
     let new_pointX
     let new_pointY
     let temp
     let count = 0
-    while (!queue.empty()&& count<10000) {
-        // console.log("Donen deger",queue.pop_min())
+    while (!queue.empty() && count<100000000) {
         let new_points = [] ;
         let current_point = new Cell()
         Object.assign(current_point, queue.pop_min())
-        console.log("Current Point", current_point)
-        // queue.insert(end_point)
-        // Object.assign(current_point,  queue.pop_min())
-        // console.log("Current Pointx, current_point y ", current_point.position.x, current_point.position.y)
+        // console.log("Guncel obje",current_point)
         if (current_point.position.x == end_point.position.x && current_point.position.y == end_point.position.y) {
-            console.log("Vardim2")
             let path = []
             let current = current_point
             while (current.parent != null) {
-                path.push(current.position)
+                path.push({position:current.position, cost : current.f})
                 current = current.parent
             }
             console.log("Path olusturuldu", path)
             return path;
         }
-        let x_ = [1, -1, 0, 0];
-        let y_ = [0, 0, 1, -1];
-        for (let item=0; item<4; item++){
+        let x_ = [1,-1, 0, 0, 1, -1];
+        let y_ = [0, 0, 1,-1, 1, -1];
+        // console.log("Alandayim",current_point)
+        for (let item=0; item<6; item++){
             new_pointX = current_point.position.x + x_[item]
             new_pointY = current_point.position.y + y_[item]
             // console.log("new pointx, new_point y ",  new_pointX, new_pointY)
-            if(!(new_pointX < 0 || new_pointX >=canvas.width  || new_pointY < 0 || new_pointY >= canvas.height) && !visited[new_pointX+"_"+new_pointY] ){
+            if(!(new_pointX < 0 || new_pointX >=canvas.width  || new_pointY < 0 || new_pointY >= canvas.height) && !visited[new_pointX+"_"+new_pointY]){
                 temp = new Cell()
                 temp.setParent(current_point)
                 temp.setPosition({x:new_pointX,y:new_pointY})
+                // temp.g = current_point.g + img_data.data[getIndex(temp.position.x, temp.position.y, img_data.width, img_data.height)]
+                temp.g = current_point.g
+                temp.h = ((temp.position.x - end_point.position.x) ** 2) + ((temp.position.y - end_point.position.y) ** 2)
+                temp.f = temp.g + temp.h
+                // console.log("Basiyorum su anda", temp)
                 visited[new_pointX+"_"+new_pointY] = temp
                 queue.insert(temp)
             }
-        
-                
-        // temp = new Cell()
-        // temp.setParent(current_point)
-        // // temp2 = {x: new_pointX, y:new_pointY}
-        // // console.log("x, y",new_pointX,new_pointY)
-        // temp.setPosition({x:new_pointX,y:new_pointY})
-        // new_points.push(temp)
-        // console.log("new points", new_points)
         }
-
-        // for(let item=0;item<new_points.length;item++){ //Iterable yapman lazim objeyi
-        //     console.log("visited", visited)
-        //     if(visited[new_points[item].x+"_"+new_points[item].y]){
-        //         console.log("Denk atladi.")
-        //         continue
-        //     }
-        //     new_points[item].g = current_point.g
-        //     new_points[item].h = ((new_points[item].position.x - end_point.position.x) ** 2) + ((new_points[item].position.y - end_point.position.y) ** 2)
-        //     new_points[item].f = new_points[item].g + new_points[item].h
-        //     console.log("Buarlarda dolanmiyor")
-        //     queue.insert(new_points[item])
-        //     visited[new_points[item].position.x+"_"+new_points[item].position.y] = new_points[item]
         count++;
-        console.log(count)
         }
+        // console.log("Path olusmadi");
     }
-    //  console.log("Path olusmadi");
 
 function is_visited(new_point, visited){
 
@@ -257,23 +234,34 @@ class Ownqueue {
     constructor() {
         this.queue = [];
     }
-
     pop_min() {
-        let min = this.queue[0].cost;
-        let idx = 0;
-        let i = this.queue.length;
-        while (--i) {
-            if (this.queue[i].cost < min) {
-                min = this.queue[i].cost;
-                idx = i;
+       let current_point = this.queue[0]
+       let curent_index = 0
+        // console.log("Queue size", this.queue.length)
+        for (let item=0 ; item<this.queue.length;item++){
+            if(this.queue[item].f<current_point.f){
+                current_point = this.queue[item]
+                curent_index = item;
             }
         }
-        let val = this.queue[idx];
-        this.queue.splice(idx, 1);
-        return val;
+        this.queue.splice(curent_index, 1);
+        return current_point
+        // let min = this.queue[0].f;
+        // let idx = 0;
+        // let i = this.queue.length;
+        // while (--i) {
+        //     if (this.queue[i].f < min) {
+        //         min = this.queue[i].cost;
+        //         idx = i;
+        //     }
+        // }
+        // let val = this.queue[idx];
+        // this.queue.splice(idx, 1);
+        // return val;
     }
 
     insert(item) {
+        console.log("Bastim kuyruga")
         this.queue.push(item);
     }
     empty() {
@@ -281,5 +269,8 @@ class Ownqueue {
     }
     clear() {
         this.queue = [];
+    }
+    size(){
+        return this.queue.size;
     }
 }
