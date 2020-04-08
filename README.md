@@ -1,1 +1,2 @@
 # UnalAsil.github.io
+Kullanımı : Başlangıç ve bitiş noktaları için resmin üzerine tıklanması gerekmektedir. İlk tıklama başlangıç noktası, ikinci tıklama bitiş noktası olacaktır.İkinci tıklamadan sonra algoritmalar çalışmaya başlayacaktır. Bu işlem biraz bekletebilmektedir lütfen sayfayı kapatmayınız, hesaplama bitmeden yeni noktalara tıklamayınız.
