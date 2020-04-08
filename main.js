@@ -186,7 +186,7 @@ function Astar(type) { // A star fonksiyonu
     // console.log("Path olusmadi");
 }
 
-function BFS(type) { // A star fonksiyonu
+function BFS(type) { // BFS fonksiyonu
     var img_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let start_time = performance.now()
     ctx.fillStyle = "blue";
